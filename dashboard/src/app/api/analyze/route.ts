@@ -8,20 +8,20 @@ import os from 'os';
 const UPLOAD_DIR = path.join(os.tmpdir(), 'claimvision_uploads');
 const ALLOWED_MIME_TYPES = ['image/jpeg', 'image/png', 'image/webp'];
 
+import { execSync } from 'child_process';
+
 function getPythonCommand(): string | null {
   if (process.env.PYTHON_PATH) {
     return process.env.PYTHON_PATH;
   }
   
-  const commands = ['py', 'python', 'python3'];
+  const commands = ['py', 'python', 'python3', 'python.exe', 'python3.exe'];
   for (const cmd of commands) {
     try {
-      const result = spawnSync(cmd, ['--version'], { shell: process.platform === 'win32' });
-      if (!result.error) {
-        return cmd;
-      }
+      execSync(`${cmd} --version`, { stdio: 'ignore', windowsHide: true });
+      return cmd;
     } catch (e) {
-      // Ignore sync exceptions
+      // ignore
     }
   }
   return null;
