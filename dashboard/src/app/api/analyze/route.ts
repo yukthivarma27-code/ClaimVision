@@ -5,7 +5,7 @@ import path from 'path';
 import { spawn } from 'child_process';
 import os from 'os';
 
-const UPLOAD_DIR = path.resolve(process.cwd(), 'tmp_uploads');
+const UPLOAD_DIR = path.join(os.tmpdir(), 'claimvision_uploads');
 const ALLOWED_MIME_TYPES = ['image/jpeg', 'image/png', 'image/webp'];
 
 function getPythonCommand() {
