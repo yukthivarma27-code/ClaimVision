@@ -1,161 +1,254 @@
-# HackerRank Orchestrate
+# ClaimVision
 
-Starter repository for the **HackerRank Orchestrate** 24-hour hackathon.
-
-Build a system that verifies visual evidence for damage claims across three object types: **cars**, **laptops**, and **packages**.
-
-Your system will receive claim conversations, one or more submitted images, user claim history, and minimum evidence requirements. It must decide whether the submitted images support the claim, contradict it, or do not provide enough information.
-
-Read [`problem_statement.md`](./problem_statement.md) for the full task spec, input/output schema, and allowed values.
+**AI-Powered Damage Claim Verification & Evidence Intelligence Platform**
 
 ---
 
-## Contents
+## Overview
 
-1. [Repository layout](#repository-layout)
-2. [What you need to build](#what-you-need-to-build)
-3. [Where your code goes](#where-your-code-goes)
-4. [Quickstart](#quickstart)
-5. [Evaluation](#evaluation)
-6. [Chat transcript logging](#chat-transcript-logging)
-7. [Submission](#submission)
-8. [Judge interview](#judge-interview)
+ClaimVision is a state-of-the-art multimodal evidence review system designed to streamline and automate the verification of damage claims. The platform intelligently analyzes multiple streams of information:
+
+*   **Damage Images**
+*   **User Claim Conversations**
+*   **User History Context**
+*   **Evidence Requirements**
+
+By synthesizing these data points, ClaimVision autonomously determines whether a claim is:
+*   🟢 **Supported**: The visual evidence clearly matches the user's claim.
+*   🔴 **Contradicted**: The visual evidence directly contradicts the claim (e.g., claimed damage is visible as completely intact, or flags indicate fraudulent behavior).
+*   ⚪ **Not Enough Information**: The visual evidence is missing, entirely obstructed, or lacks the necessary clarity to confidently make a decision.
 
 ---
 
-## Repository layout
+## Problem Statement
+
+Reviewing manual damage claims (for automobiles, electronics, packages, etc.) is traditionally a slow, labor-intensive process highly prone to human error and subjective bias. Evaluating the validity of a claim requires parsing conversational input, visually identifying structural issues in unstructured photos, and cross-referencing user risk profiles.
+
+ClaimVision's objective is to fully automate this pipeline using multimodal AI capabilities. In our decision logic, **images are treated as the primary source of truth**. User history, conversational tone, and prior claim counts provide only contextual risk information and are never allowed to override clear visual evidence.
+
+---
+
+## Features
+
+*   **Multimodal Image Analysis**: Deep vision analysis to identify specific structural damage such as dents, scratches, cracks, shattered glass, missing pieces, or packaging tears.
+*   **Claim Extraction from Conversations**: Robust deterministic and AI-powered extraction logic to parse unstructured user interactions into structured identifiers (e.g., `issue_type` and `object_part`).
+*   **Evidence Sufficiency Verification**: Validates whether the submitted images meet the minimum required standards (size, clarity, object inclusion) before rendering a decision.
+*   **User Risk Assessment**: Synthesizes historical risk flags and conversational prompt injections to flag suspicious activity without hallucinating damage.
+*   **Severity Estimation**: Automatically assigns a severity rating (Low, Medium, High) based on the combined output of claim extraction and visual validation.
+*   **Structured Output Generation**: Transforms complex analysis into clean, predictable schema data (`output.csv`).
+*   **Evaluation Framework**: Included tooling to benchmark pipeline accuracy, precision, and recall against ground-truth sample data.
+*   **Premium Analytics Dashboard**: A sleek, modern Next.js frontend to visualize claim verdicts, risk flags, and systemic metrics.
+*   **Automated Report Generation**: Generates comprehensive markdown evaluation reports on demand.
+
+---
+
+## System Architecture
+
+The analysis pipeline processes data through a structured sequence of highly decoupled modules:
+
+```mermaid
+graph TD
+    A[Claims CSV] -->|Extract Text/Paths| B[Claim Parser]
+    B -->|User Conversation & Risk Data| C[User History Analyzer]
+    B -->|Image Paths & Claim Object| D[Evidence Checker]
+    C --> E[Decision Engine]
+    D -->|Usable Images| F[Image Analyzer]
+    F -->|Visual Verification| E
+    E -->|Structured Output| G[Output Generator]
+    G --> H[output.csv]
+    
+    style A fill:#1e293b,stroke:#3b82f6,color:#fff
+    style H fill:#059669,stroke:#10b981,color:#fff
+    style E fill:#4f46e5,stroke:#818cf8,color:#fff
+```
+
+---
+
+## Tech Stack
+
+**Frontend:**
+*   Next.js (App Router)
+*   TypeScript
+*   TailwindCSS
+*   shadcn/ui
+*   Framer Motion
+
+**Backend:**
+*   Python 3.10+
+*   FastAPI (Dashboard API routing)
+*   Pandas (Data processing and schema mapping)
+*   Pydantic (Validation schemas)
+
+**AI & Models:**
+*   Google Gemini / OpenAI Vision Models (Multi-Modal verification)
+
+**Utilities:**
+*   Tenacity (Retry logic)
+*   Diskcache (Response caching to minimize API costs)
+*   Scikit-learn (Metric calculations)
+*   TQDM (Progress tracking)
+
+---
+
+## Folder Structure
 
 ```text
-.
-├── AGENTS.md                         # Rules for AI coding tools + transcript logging
-├── problem_statement.md              # Full task description and I/O schema
-├── README.md                         # You are here
-├── code/                             # Build your solution here
-│   ├── main.py                       # Suggested terminal entry point
-│   └── evaluation/
-│       └── main.py                   # Suggested evaluation entry point
-└── dataset/
-    ├── sample_claims.csv             # Inputs + expected outputs for development
-    ├── claims.csv                    # Inputs only; run your system on these rows
-    ├── user_history.csv              # Historical claim counts and risk context
-    ├── evidence_requirements.csv     # Minimum image evidence requirements
-    └── images/
-        ├── sample/                   # Images referenced by sample_claims.csv
-        └── test/                     # Images referenced by claims.csv
+ClaimVision/
+├── AGENTS.md                   # Agent runtime and compliance rules
+├── README.md                   # This documentation
+├── output.csv                  # The structured pipeline results
+├── code/                       # Backend Python Pipeline
+│   ├── main.py                 # Core CLI entry point
+│   ├── config.py               # Constants and environment configuration
+│   ├── data_loader.py          # CSV ingestion and validation
+│   ├── pipeline.py             # Orchestration of the analysis flow
+│   ├── prompts.py              # System prompt and VLM prompt builder
+│   ├── vlm_client.py           # API integration for AI vision
+│   ├── deterministic_engine.py # Regex/Rule-based deterministic fallback logic
+│   └── evaluation/             # Evaluation frameworks
+│       ├── main.py             # CLI entry for running metric evaluation
+│       ├── metrics.py          # Precision/Recall calculation logic
+│       └── evaluation_report.md# Automatically generated performance metrics
+├── dashboard/                  # Next.js Frontend Application
+│   ├── src/                    # Frontend source code
+│   │   ├── app/                # Next.js App Router (page.tsx, layout.tsx, globals.css)
+│   │   └── components/         # Reusable UI components
+│   ├── public/                 # Static frontend assets
+│   ├── tailwind.config.ts      # Tailwind styling configuration
+│   └── package.json            # Node dependencies
+└── dataset/                    # Source data (claims, history, requirements)
+    ├── claims.csv              
+    ├── sample_claims.csv       
+    ├── user_history.csv        
+    ├── evidence_requirements.csv
+    └── images/                 # Image assets for processing
 ```
 
 ---
 
-## What you need to build
+## Installation
 
-A system that, for each row in `dataset/claims.csv`, produces one row in `output.csv`.
-
-Input fields:
-
-| Column | Meaning |
-|---|---|
-| `user_id` | User submitting the claim; use this to look up `dataset/user_history.csv` |
-| `image_paths` | One or more submitted image paths, separated by semicolons |
-| `user_claim` | Chat transcript describing the issue |
-| `claim_object` | `car`, `laptop`, or `package` |
-
-Required output fields:
-
-| Column | Meaning |
-|---|---|
-| `evidence_standard_met` | Whether the image set is sufficient to evaluate the claim |
-| `evidence_standard_met_reason` | Short reason for the evidence decision |
-| `risk_flags` | Semicolon-separated risk flags, or `none` |
-| `issue_type` | Visible issue type |
-| `object_part` | Relevant object part |
-| `claim_status` | `supported`, `contradicted`, or `not_enough_information` |
-| `claim_status_justification` | Concise explanation grounded in the image evidence |
-| `supporting_image_ids` | Image IDs supporting the decision, or `none` |
-| `valid_image` | Whether the image set is usable for automated review |
-| `severity` | `none`, `low`, `medium`, `high`, or `unknown` |
-
-Hard requirements:
-
-- Must read the provided CSV files and local images.
-- Must produce `output.csv` with the exact schema in `problem_statement.md`.
-- Must include an evaluation workflow
-- Must avoid hardcoded test labels or file-specific answers.
-
-Beyond that you are free to bring your own approach: VLMs, LLMs, structured prompting, rule layers, batching, caching, evaluation pipelines, model comparison, or anything else.
-
----
-
-## Where your code goes
-
-All of your work belongs in [`code/`](./code/). The repo ships with empty starter files that you can grow into your full solution.
-
-Suggested conventions:
-
-- Put your main runnable solution in `code/main.py`, or document your own entry point clearly.
-- Put evaluation code under `code/evaluation/` or an `evaluation/` folder included in your final `code.zip`.
-- Write final predictions to `output.csv`.
-
----
-
-## Quickstart
-
-Clone this repository:
+### 1. Clone Repository
 
 ```bash
-git clone git@github.com:interviewstreet/hackerrank-orchestrate-june26.git
-cd hackerrank-orchestrate-june26
+git clone https://github.com/yukthivarma27-code/ClaimVision.git
+cd ClaimVision
 ```
 
-You are free to use any language or runtime. Python, JavaScript, and TypeScript are all reasonable choices.
+### 2. Backend Setup
+
+It is highly recommended to use a virtual environment (`venv`).
+
+```bash
+python -m venv venv
+source venv/bin/activate  # On Windows: venv\Scripts\activate
+pip install -r requirements.txt
+```
+
+### 3. Environment Variables
+
+To utilize the full capability of the vision models, configure your `.env` file at the root of the project with at least one supported API key:
+
+```env
+GEMINI_API_KEY=your_gemini_api_key
+# OR
+OPENAI_API_KEY=your_openai_api_key
+```
+*(Note: If no API key is provided, the backend gracefully falls back to the deterministic Regex/Rule-based engine).*
+
+### 4. Run Prediction Pipeline
+
+Execute the main backend analysis to process `dataset/claims.csv` and generate the `output.csv`.
+
+```bash
+python code/main.py
+```
+
+### 5. Run Evaluation
+
+Benchmark the pipeline's accuracy against `dataset/sample_claims.csv`:
+
+```bash
+python code/evaluation/main.py
+```
+
+### 6. Run Frontend Dashboard
+
+Spin up the ClaimVision Next.js dashboard to visually review the processed claims:
+
+```bash
+cd dashboard
+npm install
+npm run dev
+```
+Navigate to `http://localhost:3000` in your browser.
 
 ---
 
-## Evaluation
+## Output Schema
 
-The evaluation report should include:
+The prediction pipeline explicitly generates an `output.csv` at the repository root. Every row in `output.csv` corresponds to a claim and maps to the following strict schema:
 
-- metrics on `dataset/sample_claims.csv`
-- at least two strategies, prompts, or model configurations compared
-- the final strategy used for `output.csv`
-- operational analysis covering model calls, token usage, image usage, approximate cost, runtime, and TPM/RPM considerations
-
----
-
-## Chat transcript logging
-
-This repo ships with an `AGENTS.md` that modern AI coding tools may read. It instructs the tool to append conversation turns to a shared log file:
-
-| Platform | Path |
-|---|---|
-| macOS / Linux | `$HOME/hackerrank_orchestrate/log.txt` |
-| Windows | `%USERPROFILE%\hackerrank_orchestrate\log.txt` |
-
-You will upload this log as your chat transcript at submission time. The chat transcript means your conversation with the AI coding tool you used to build the system. It is not the runtime logs, reasoning trace, or conversation history produced by the claim-verification agent you are building.
-
-If you use multiple AI tools, include the relevant conversation logs from all of them in the same transcript file. Separate each tool's section with a clear divider and label it with the tool name.
-
-Never paste secrets into the chat. If secrets are needed, use environment variables.
+| Column Name | Type | Description |
+| :--- | :--- | :--- |
+| `user_id` | String | The unique identifier for the user submitting the claim. |
+| `image_paths` | String | Semicolon-separated absolute/relative paths to the submitted evidence images. |
+| `user_claim` | String | The original conversational text outlining the user's issue. |
+| `claim_object` | String | The overarching object being claimed (e.g., `car`, `laptop`, `package`). |
+| `evidence_standard_met` | Boolean | `true` if the submitted images meet the minimum required evidence standards, `false` otherwise. |
+| `evidence_standard_met_reason` | String | Justification text explaining why the evidence standard was or was not met. |
+| `risk_flags` | Enum | Semicolon-separated string of identified risk signals (e.g., `blurry_image;user_history_risk` or `none`). |
+| `issue_type` | Enum | The specific nature of the damage (e.g., `dent`, `scratch`, `crack`, `glass_shatter`, `broken_part`, `none`, `unknown`). |
+| `object_part` | Enum | The specific structural part of the object affected (e.g., `front_bumper`, `screen`, `seal`, `unknown`). |
+| `claim_status` | Enum | The final decision algorithm output: `supported`, `contradicted`, or `not_enough_information`. |
+| `claim_status_justification` | String | Explainable reasoning linking the visual evidence and conversation logic to the final `claim_status`. |
+| `supporting_image_ids` | String | Semicolon-separated filenames (without extensions) of images confirming the claim, or `none`. |
+| `valid_image` | Boolean | `true` if images are accessible and not corrupt; `false` otherwise. |
+| `severity` | Enum | Severity rating mapping: `high`, `medium`, `low`, `none`, `unknown`. |
 
 ---
 
-## Submission
+## Evaluation Metrics
 
-Submit the following files as instructed by HackerRank:
+ClaimVision utilizes a rigorous evaluation suite calculating the following standard classification metrics against expected labels:
 
-1. **Code zip**: zip your runnable solution, README, prompts/configs, and evaluation folder. Exclude virtualenvs, `node_modules`, build artifacts, and unnecessary generated files.
-2. **Predictions CSV**: your final `output.csv` for all rows in `dataset/claims.csv`.
-3. **Chat transcript**: the `log.txt` from the path in [Chat transcript logging](#chat-transcript-logging).
-
-Before submitting, confirm:
-
-- `output.csv` has one row per row in `dataset/claims.csv`.
-- `output.csv` has the exact required columns in the exact required order.
-- Your evaluation files are included in `code.zip`.
+*   **Accuracy**: The percentage of totally correct `claim_status` verdicts across the entire dataset.
+*   **Precision**: The percentage of claims predicted as `supported` that were actually true positives (reducing false approvals).
+*   **Recall**: The percentage of actual `supported` claims that the system correctly identified (reducing false rejections).
+*   **F1 Score**: The harmonic mean of Precision and Recall, providing a singular score for system reliability.
 
 ---
 
-## Judge interview
+## Dashboard
 
-After submission, the AI Judge may ask about your approach, implementation decisions, model usage, evaluation strategy, and how you used AI while building the solution.
+ClaimVision includes a premium enterprise-grade web dashboard crafted with Next.js and TailwindCSS. 
 
-Be prepared to explain your solution in detail.
+*   **Claims Review**: An interactive, dynamic list populated natively from `output.csv`.
+*   **Image Viewer**: Direct preview capability for submitted multi-modal evidence.
+*   **Risk Profiles**: Visual flagging using specialized badges (Emerald, Rose, Indigo palettes) for risk profiles (`manual_review_required`, `claim_mismatch`).
+*   **Analytics & System Metrics**: High-level statistical tracking of pipeline throughput and current batch ratios.
+
+---
+
+## Sample Workflow
+
+1.  **Ingestion**: System reads `dataset/claims.csv` containing raw conversations and image paths.
+2.  **Analysis**: The pipeline orchestrates image accessibility verification, deterministic prompt parsing, and VLM multimodal evaluation.
+3.  **Decision Engine**: Signals are correlated. Does the image support the conversation? Is there a prompt injection? Was the user history flagged for fraud?
+4.  **Output**: System writes final standardized verdicts strictly adhering to the schema in `output.csv`.
+
+---
+
+## Future Improvements
+
+*   **Fraud Detection Models**: Integration of specialized heuristic and anomaly-detection ML models beyond Vision Language matching.
+*   **OCR Support**: Direct optical character recognition for extracting shipping labels and serial numbers natively.
+*   **Explainable AI (XAI)**: Highlighted bounding boxes dynamically drawn onto source images showing *exactly* where the model detected the dent or crack.
+*   **Real-time Claim Review**: WebSocket architecture enabling synchronous VLM verification while the user is actively submitting their claim.
+*   **Enterprise Integrations**: Webhook delivery of the JSON schema to Salesforce, ServiceNow, or Zendesk instances.
+
+---
+
+## Author
+
+Developed as a multimodal AI evidence review platform for automated damage claim verification. Designed specifically to adhere to high architectural constraints, absolute determinism in structured outputs, and enterprise-grade UI aesthetics.
