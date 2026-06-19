@@ -2,14 +2,29 @@ import { NextResponse } from 'next/server';
 import { writeFile, unlink, mkdir } from 'fs/promises';
 import { existsSync } from 'fs';
 import path from 'path';
-import { spawn } from 'child_process';
+import { spawn, spawnSync } from 'child_process';
 import os from 'os';
 
 const UPLOAD_DIR = path.join(os.tmpdir(), 'claimvision_uploads');
 const ALLOWED_MIME_TYPES = ['image/jpeg', 'image/png', 'image/webp'];
 
-function getPythonCommand() {
-  return os.platform() === 'win32' ? 'py' : 'python3';
+function getPythonCommand(): string | null {
+  if (process.env.PYTHON_PATH) {
+    return process.env.PYTHON_PATH;
+  }
+  
+  const commands = ['py', 'python', 'python3'];
+  for (const cmd of commands) {
+    try {
+      const result = spawnSync(cmd, ['--version'], { shell: process.platform === 'win32' });
+      if (!result.error) {
+        return cmd;
+      }
+    } catch (e) {
+      // Ignore sync exceptions
+    }
+  }
+  return null;
 }
 
 export async function POST(req: Request) {
@@ -25,12 +40,12 @@ export async function POST(req: Request) {
     
     if (!user_claim || !claim_object) {
       console.error("[Analyze API] Missing claim details.");
-      return NextResponse.json({ error: 'Missing claim details.' }, { status: 400 });
+      return NextResponse.json({ error: 'Missing claim details. Please provide both an object type and description.' }, { status: 400 });
     }
 
     if (!files || files.length === 0) {
       console.error("[Analyze API] No images uploaded.");
-      return NextResponse.json({ error: 'No images uploaded.' }, { status: 400 });
+      return NextResponse.json({ error: 'No images uploaded. At least one evidence image is required.' }, { status: 400 });
     }
 
     if (!existsSync(UPLOAD_DIR)) {
@@ -48,16 +63,21 @@ export async function POST(req: Request) {
       }
 
       if (file.size === 0) {
-        return NextResponse.json({ error: 'Corrupted or empty file uploaded.' }, { status: 400 });
+        return NextResponse.json({ error: 'Corrupted or empty file uploaded. Please upload a valid image.' }, { status: 400 });
       }
 
       const buffer = Buffer.from(await file.arrayBuffer());
       const uniqueName = `${Date.now()}_${file.name.replace(/[^a-zA-Z0-9.-]/g, '_')}`;
       const filePath = path.join(UPLOAD_DIR, uniqueName);
       
-      await writeFile(filePath, buffer);
-      savedPaths.push(filePath);
-      console.log(`[Analyze API] Saved temp file to: ${filePath}`);
+      try {
+        await writeFile(filePath, buffer);
+        savedPaths.push(filePath);
+        console.log(`[Analyze API] Saved temp file to: ${filePath}`);
+      } catch (err) {
+        console.error(`[Analyze API] Failed to save file to ${filePath}`, err);
+        return NextResponse.json({ error: 'Unable to process uploaded evidence securely. Temp storage failed.' }, { status: 500 });
+      }
     }
 
     // Call Python script
@@ -70,10 +90,28 @@ export async function POST(req: Request) {
 
     const pythonScript = path.resolve(process.cwd(), '..', 'code', 'live_predict.py');
     const pythonCmd = getPythonCommand();
+
+    if (!pythonCmd) {
+      console.error(`[Analyze API] Python runtime not found on the server.`);
+      // Cleanup files immediately
+      for (const filePath of savedPaths) {
+        try { await unlink(filePath); } catch (e) {}
+      }
+      return NextResponse.json({ error: 'Python runtime not found. Vision analysis backend unavailable.' }, { status: 500 });
+    }
+
     console.log(`[Analyze API] Spawning python: ${pythonCmd} ${pythonScript}`);
 
     return new Promise<NextResponse>((resolve) => {
-      const pyProcess = spawn(pythonCmd, [pythonScript]);
+      let pyProcess;
+      try {
+        pyProcess = spawn(pythonCmd, [pythonScript], { shell: process.platform === 'win32' });
+      } catch (e: any) {
+         console.error(`[Analyze API] Spawn exception: ${e.message}`);
+         resolve(NextResponse.json({ error: 'Vision analysis backend unavailable.' }, { status: 500 }));
+         return;
+      }
+
       let dataString = '';
       let errorString = '';
 
@@ -92,7 +130,7 @@ export async function POST(req: Request) {
         for (const filePath of savedPaths) {
           try { await unlink(filePath); } catch (e) {}
         }
-        resolve(NextResponse.json({ error: `Backend failure: Could not start Python process. (${error.message})` }, { status: 500 }));
+        resolve(NextResponse.json({ error: 'Vision analysis backend unavailable.' }, { status: 500 }));
       });
 
       pyProcess.on('close', async (code) => {
@@ -111,7 +149,7 @@ export async function POST(req: Request) {
         try {
           // If no stdout at all but there is stderr
           if (!dataString.trim() && errorString.trim()) {
-            resolve(NextResponse.json({ error: `Python execution failed. Details: ${errorString.substring(0, 200)}...` }, { status: 500 }));
+            resolve(NextResponse.json({ error: 'Unable to analyze uploaded evidence. Backend execution failed.' }, { status: 500 }));
             return;
           }
 
@@ -125,8 +163,7 @@ export async function POST(req: Request) {
           }
         } catch (err: any) {
           console.error("[Analyze API] Failed to parse Python output", err, "RAW:", dataString);
-          const excerpt = errorString ? errorString.substring(0, 300) : "No stderr available.";
-          resolve(NextResponse.json({ error: `Internal server error. Failed to parse AI analysis. Check backend logs. Python stderr: ${excerpt}` }, { status: 500 }));
+          resolve(NextResponse.json({ error: 'Unable to analyze uploaded evidence. Invalid response format.' }, { status: 500 }));
         }
       });
 
@@ -141,6 +178,6 @@ export async function POST(req: Request) {
 
   } catch (error: any) {
     console.error("[Analyze API] Unhandled API route error:", error);
-    return NextResponse.json({ error: `Failed to process request: ${error.message}` }, { status: 500 });
+    return NextResponse.json({ error: 'Unable to process your request at this time.' }, { status: 500 });
   }
 }
