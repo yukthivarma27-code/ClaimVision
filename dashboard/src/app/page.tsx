@@ -19,9 +19,10 @@ export default async function Dashboard() {
       <div className="max-w-7xl mx-auto">
         <header className="mb-10">
           <h1 className="text-4xl font-extrabold tracking-tight mb-2 text-transparent bg-clip-text bg-gradient-to-r from-blue-400 to-emerald-400">
-            HackerRank Orchestrate Dashboard
+            ClaimVision
           </h1>
-          <p className="text-neutral-400">Reviewing {data.length} processed multimodal claims.</p>
+          <p className="text-neutral-400 mb-2 font-medium">AI-Powered Damage Claim Verification & Evidence Intelligence Platform</p>
+          <p className="text-neutral-500 text-sm">Reviewing {data.length} processed multimodal claims.</p>
         </header>
 
         <div className="grid gap-6">
@@ -79,7 +80,14 @@ export default async function Dashboard() {
                   <div className="grid grid-cols-2 gap-3">
                     {row.image_paths?.split(';').map((img: string, idx: number) => (
                       <div key={idx} className="relative aspect-video bg-neutral-800 rounded-xl overflow-hidden border border-neutral-700 flex items-center justify-center">
-                        <span className="text-xs text-neutral-500 truncate px-4">{img.split('/').pop()}</span>
+                        <img 
+                          src={`/api/image?path=${encodeURIComponent(img)}`} 
+                          alt={`Evidence ${idx + 1}`}
+                          className="object-cover w-full h-full"
+                        />
+                        <div className="absolute bottom-0 left-0 right-0 bg-gradient-to-t from-black/80 to-transparent p-2">
+                          <span className="text-[10px] text-neutral-300 truncate block">{img.split('/').pop()}</span>
+                        </div>
                       </div>
                     ))}
                   </div>

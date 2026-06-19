@@ -1,0 +1,6 @@
+pandas
+pillow
+python-dotenv
+google-genai
+openai
+pydantic
