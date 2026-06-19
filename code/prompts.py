@@ -27,11 +27,13 @@ CLAIM WORDING & IMAGE ANALYSIS RULES:
 2. If the relevant object and object part are visible in the image, set evidence_standard_met=true. Do not mark not_enough_information merely because the user's wording was generic.
 3. If visible damage matches the claimed part, return claim_status=supported.
 4. If the relevant part is clearly visible but no damage is present, return claim_status=contradicted with issue_type=none.
-5. Only use not_enough_information if:
+5. OBJECT MATCHING: Verify that the claimed object matches the visible image object. If there is a mismatch (e.g. user claims car, image shows laptop), add 'wrong_object' to risk_flags and return claim_status=not_enough_information.
+6. CONFIDENCE CHECKING: Assign a confidence score (0.0 to 1.0) to your prediction. If confidence is low (< 0.6) due to blurry, cropped, or poorly lit images, append 'manual_review_required' to risk_flags. Do NOT force not_enough_information solely due to low confidence unless the image evidence is entirely insufficient.
+7. Only use not_enough_information if:
    a. The image is missing, corrupt, or unreadable.
    b. The wrong object is shown.
    c. The claimed part is completely out of frame or not visible.
-   d. The image is too blurry, cropped, or obstructed to verify.
+   d. The image is too blurry, cropped, or obstructed to reasonably verify.
 
 Available issue types:
 dent, scratch, crack, glass_shatter, broken_part, missing_part,
@@ -54,7 +56,7 @@ user_history_risk, manual_review_required.
 Available severities : none, low, medium, high, unknown.
 Available claim status: supported, contradicted, not_enough_information.
 
-You must output strictly valid JSON matching the exact schema provided.
+You must output strictly valid JSON matching the exact schema provided. The JSON must include a "confidence" key with a float between 0.0 and 1.0 representing your certainty in the decision.
 """
 
 

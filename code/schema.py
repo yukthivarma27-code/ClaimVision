@@ -12,3 +12,4 @@ class OutputSchema(BaseModel):
     supporting_image_ids: str = Field(description="image IDs supporting the decision, separated by semicolons; use 'none' if no image is sufficient")
     valid_image: bool = Field(description="true if image set is usable for automated review; otherwise false")
     severity: Literal["none", "low", "medium", "high", "unknown"]
+    confidence: float = Field(default=1.0, description="Confidence score between 0.0 and 1.0")

@@ -73,6 +73,7 @@ def validate_and_format_row(row_input, claim_object, raw_vlm_output):
     validated["image_paths"] = row_input["image_paths"]
     validated["user_claim"] = row_input["user_claim"]
     validated["claim_object"] = claim_object
+    validated["confidence"] = float(raw_vlm_output.get("confidence", 1.0))
 
     return validated
 
