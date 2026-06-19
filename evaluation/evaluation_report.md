@@ -7,7 +7,7 @@
 | Metric | Value |
 |---|---|
 | Total Evaluated | 20 |
-| Composite Weighted Score | **68.0%** |
+| Composite Weighted Score | **70.2%** |
 
 ## Exact-Match Accuracy by Field
 
@@ -16,9 +16,9 @@
 | evidence_standard_met | 90.0% `##################  ` | 18/20 | 10% |
 | issue_type | 55.0% `###########         ` | 11/20 | 20% |
 | object_part | 85.0% `#################   ` | 17/20 | 20% |
-| claim_status | 60.0% `############        ` | 12/20 | 35% |
+| claim_status | 65.0% `#############       ` | 13/20 | 35% |
 | valid_image | 90.0% `##################  ` | 18/20 | 5% |
-| severity | 55.0% `###########         ` | 11/20 | 10% |
+| severity | 60.0% `############        ` | 12/20 | 10% |
 
 ## Per-Field Miss Analysis
 
@@ -33,11 +33,11 @@
 
 | user_id | ground_truth | predicted |
 |---|---|---|
-| user_005 | scratch | unknown |
+| user_005 | scratch | dent |
 | user_006 | unknown | crack |
 | user_008 | broken_part | scratch |
-| user_018 | crack | unknown |
-| user_020 | none | unknown |
+| user_018 | crack | broken_part |
+| user_020 | none | dent |
 | user_030 | torn_packaging | broken_part |
 | user_032 | unknown | missing_part |
 | user_033 | unknown | crushed_packaging |
@@ -51,15 +51,14 @@
 | user_031 | package_side | item |
 | user_033 | unknown | contents |
 
-### claim_status — 8 miss(es)
+### claim_status — 7 miss(es)
 
 | user_id | ground_truth | predicted |
 |---|---|---|
-| user_005 | contradicted | not_enough_information |
+| user_005 | contradicted | supported |
 | user_006 | not_enough_information | supported |
 | user_008 | contradicted | supported |
-| user_018 | supported | not_enough_information |
-| user_020 | contradicted | not_enough_information |
+| user_020 | contradicted | supported |
 | user_032 | not_enough_information | supported |
 | user_033 | contradicted | supported |
 | user_034 | contradicted | supported |
@@ -71,16 +70,15 @@
 | user_008 | False | True |
 | user_032 | False | True |
 
-### severity — 9 miss(es)
+### severity — 8 miss(es)
 
 | user_id | ground_truth | predicted |
 |---|---|---|
-| user_005 | low | unknown |
+| user_005 | low | medium |
 | user_006 | unknown | medium |
 | user_008 | high | low |
 | user_012 | low | medium |
-| user_018 | medium | unknown |
-| user_020 | none | unknown |
+| user_020 | none | medium |
 | user_032 | unknown | medium |
 | user_033 | low | medium |
 | user_034 | none | medium |
@@ -89,8 +87,8 @@
 
 | GT \ Pred | supported | contradicted | not_enough_information |
 |---|---|---|---|
-| **supported** | 12 | 0 | 1 |
-| **contradicted** | 3 | 0 | 2 |
+| **supported** | 13 | 0 | 0 |
+| **contradicted** | 5 | 0 | 0 |
 | **not_enough_information** | 2 | 0 | 0 |
 
 ## System Architecture

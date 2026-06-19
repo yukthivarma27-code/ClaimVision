@@ -68,7 +68,9 @@ ISSUE_PRIORITY_TABLE = [
     (5,  "crushed_packaging", ["crushed"]),
     (5,  "torn_packaging",    ["torn"]),
     (4,  "scratch",           [" mark ", "mark on"]),
-    (3,  "broken_part",       ["broken"]),
+    (3,  "broken_part",       ["broken", "smashed", "not working"]),
+    (2,  "dent",              ["damaged", "affected", "hit", "impact", "looks bad", "daño", "dano"]),
+    (1,  "broken_part",       ["issue", "problem", "ruined", "destroyed"]),
 ]
 
 # ─────────────────────────────────────────────────────────────────────────────
@@ -89,8 +91,9 @@ OBJECT_PART_KEYWORDS = {
         (8,  "fender",       ["fender"]),
         (8,  "quarter_panel",["quarter panel"]),
         (7,  "body",         ["body panel", "body damage", "outer body"]),
-        (5,  "rear_bumper",  ["bumper", "back"]),
+        (5,  "rear_bumper",  ["bumper", "back", "parachoque"]),
         (4,  "door",         ["door"]),
+        (1,  "body",         ["car", "vehicle", "it"]),
     ],
     "laptop": [
         # hinge must beat screen when both are mentioned
@@ -114,6 +117,7 @@ OBJECT_PART_KEYWORDS = {
         (5,  "screen",       ["screen", "display"]),
         (5,  "keyboard",     ["keyboard", "keys"]),
         (4,  "hinge",        ["hinge"]),
+        (1,  "body",         ["laptop", "computer", "device", "machine", "it"]),
     ],
     "package": [
         (10, "package_corner", ["package corner", "corner of the package",
@@ -137,6 +141,7 @@ OBJECT_PART_KEYWORDS = {
         (5,  "seal",           ["flap", "tape", "torn"]),
         (4,  "contents",       ["inside", "contents"]),
         (3,  "box",            ["box"]),
+        (1,  "box",            ["package", "parcel", "order", "delivery", "it"]),
     ],
 }
 
