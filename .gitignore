@@ -1,0 +1,53 @@
+# Node / JS
+node_modules/
+code/frontend/node_modules/
+code/frontend/.next/
+code/frontend/.turbo/
+code/frontend/dist/
+code/frontend/out/
+
+# Next.js build output
+.next/
+dist/
+out/
+
+# Python
+__pycache__/
+**/__pycache__/
+*.py[cod]
+*.pyd
+*.pyo
+.Python
+*.egg-info/
+.eggs/
+.venv/
+venv/
+env/
+
+# Environment / secrets
+.env
+.env.local
+.env.*.local
+
+# Logs
+*.log
+logs/
+
+# OS
+.DS_Store
+Thumbs.db
+
+# IDE
+.idea/
+.vscode/
+*.suo
+*.swp
+
+# Large binary / model artefacts
+*.node
+*.bin
+*.pkl
+*.h5
+
+# scratch files
+scratch_gap.py
