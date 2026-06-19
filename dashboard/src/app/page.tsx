@@ -32,14 +32,21 @@ export default async function Dashboard() {
                 <div>
                   <h2 className="text-xl font-semibold mb-1 flex items-center gap-3">
                     Claim: {row.user_id}
-                    <span className={`px-3 py-1 text-xs font-medium rounded-full ${row.claim_status === 'supported' ? 'bg-emerald-500/20 text-emerald-400' : row.claim_status === 'contradicted' ? 'bg-red-500/20 text-red-400' : 'bg-amber-500/20 text-amber-400'}`}>
+                    <span className={`px-3 py-1 text-xs font-medium rounded-full ${row.claim_status === 'supported' ? 'bg-emerald-500/20 text-emerald-400' : row.claim_status === 'contradicted' ? 'bg-rose-500/20 text-rose-400' : 'bg-slate-500/20 text-slate-400'}`}>
                       {row.claim_status?.replace(/_/g, ' ').toUpperCase()}
                     </span>
                   </h2>
                   <p className="text-sm text-neutral-500">Object: <span className="text-neutral-300 font-medium capitalize">{row.claim_object}</span></p>
                 </div>
                 <div className="flex items-center gap-2">
-                  <span className="text-xs px-2 py-1 bg-neutral-800 rounded-md border border-neutral-700">Severity: {row.severity}</span>
+                  <span className={`text-xs px-2 py-1 rounded-md border ${
+                    row.severity === 'high' ? 'bg-red-500/20 text-red-400 border-red-500/30' :
+                    row.severity === 'medium' ? 'bg-indigo-500/20 text-indigo-400 border-indigo-500/30' :
+                    row.severity === 'low' ? 'bg-slate-600/20 text-slate-300 border-slate-600/30' :
+                    'bg-neutral-800 text-neutral-400 border-neutral-700'
+                  }`}>
+                    Severity: {row.severity}
+                  </span>
                 </div>
               </div>
 
@@ -65,7 +72,17 @@ export default async function Dashboard() {
                       </div>
                       <div>
                         <span className="text-neutral-500 block mb-1">Risk Flags</span>
-                        <span className="font-medium text-amber-400">{row.risk_flags}</span>
+                        <div className="flex flex-wrap gap-1 mt-1">
+                          {row.risk_flags === 'none' ? (
+                            <span className="font-medium text-slate-500">none</span>
+                          ) : (
+                            row.risk_flags?.split(';').map((flag: string, idx: number) => (
+                              <span key={idx} className="inline-block px-1.5 py-0.5 bg-slate-800/80 text-slate-300 rounded border border-slate-700/80 text-[10px] tracking-wide">
+                                {flag.trim()}
+                              </span>
+                            ))
+                          )}
+                        </div>
                       </div>
                       <div>
                         <span className="text-neutral-500 block mb-1">Supporting Images</span>
