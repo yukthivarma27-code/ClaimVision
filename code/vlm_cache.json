@@ -1,0 +1,67 @@
+{
+  "52b22a25493148fcc8bbd3e8b9a624ab9b06074400e43d28f7db826f2d176109": {
+    "evidence_standard_met": true,
+    "evidence_standard_met_reason": "Images provide clear views of the front bumper and a headlight, allowing for evaluation of both claimed parts.",
+    "risk_flags": "none",
+    "issue_type": "scratch",
+    "object_part": "front_bumper",
+    "claim_status": "supported",
+    "claim_status_justification": "img_2 shows multiple scratches on the lower front bumper. img_3 shows the headlight is intact with no visible damage.",
+    "supporting_image_ids": "img_2;img_3",
+    "valid_image": true,
+    "severity": "medium",
+    "confidence": 1.0
+  },
+  "46b16aff7bfb5c4312ef0428fa2b063ccc1247c42d25fbe8cb7eb70f2e1a1406": {
+    "evidence_standard_met": true,
+    "evidence_standard_met_reason": "The car door is clearly visible, showing the claimed dent.",
+    "risk_flags": "user_history_risk",
+    "issue_type": "dent",
+    "object_part": "door",
+    "claim_status": "supported",
+    "claim_status_justification": "The image shows a visible dent on the car's door panel.",
+    "supporting_image_ids": "img_1",
+    "valid_image": true,
+    "severity": "medium",
+    "confidence": 1.0
+  },
+  "4c5c3a35d0a49b86faceb2bc7a7a298ec6eb64eeac7d13350faa8fbe358b020b": {
+    "evidence_standard_met": true,
+    "evidence_standard_met_reason": "Image 1 clearly shows the claimed windshield with damage.",
+    "risk_flags": "none",
+    "issue_type": "glass_shatter",
+    "object_part": "windshield",
+    "claim_status": "supported",
+    "claim_status_justification": "img_1 shows multiple impact points and radiating cracks on the windshield, consistent with a shattered windshield.",
+    "supporting_image_ids": "img_1",
+    "valid_image": true,
+    "severity": "high",
+    "confidence": 1.0
+  },
+  "5cf6ace8c068ffdf9f6b8cb6fef89662d33b0fe82e8b0cd4aadc32ca17022afe": {
+    "evidence_standard_met": true,
+    "evidence_standard_met_reason": "The side mirrors are clearly visible in img_1, allowing for evaluation of the claim.",
+    "risk_flags": "none",
+    "issue_type": "none",
+    "object_part": "side_mirror",
+    "claim_status": "contradicted",
+    "claim_status_justification": "img_1 shows both the driver's and passenger's side mirrors present and intact on the car, contradicting the claim of a missing or broken side mirror.",
+    "supporting_image_ids": "img_1",
+    "valid_image": true,
+    "severity": "none",
+    "confidence": 1.0
+  },
+  "af1fcad6eda1a80c0c24f8e5841ba0a05dda4a462c0dc704e7e347165dd4e737": {
+    "evidence_standard_met": false,
+    "evidence_standard_met_reason": "The claimed object part (rear bumper) is not visible in any image.",
+    "risk_flags": "damage_not_visible",
+    "issue_type": "dent",
+    "object_part": "rear_bumper",
+    "claim_status": "not_enough_information",
+    "claim_status_justification": "The claimed rear bumper is not visible in any of the submitted images.",
+    "supporting_image_ids": "none",
+    "valid_image": true,
+    "severity": "unknown",
+    "confidence": 1.0
+  }
+}

@@ -21,7 +21,7 @@ ROOT_DIR = os.path.abspath(os.path.join(os.path.dirname(__file__), ".."))
 sys.path.insert(0, ROOT_DIR)
 
 from dotenv import load_dotenv
-load_dotenv(os.path.join(ROOT_DIR, ".env"))
+load_dotenv(os.path.join(ROOT_DIR, ".env"), override=True)
 
 from code.vlm_client import HAS_GEMINI, HAS_OPENAI, analyze_claim_vlm
 from code.data_loader import load_data, get_requirements_for_object

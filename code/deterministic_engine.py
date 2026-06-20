@@ -436,6 +436,86 @@ def build_supporting_image_ids(image_paths: list, claim_status: str) -> str:
 # Public entry point
 # ─────────────────────────────────────────────────────────────────────────────
 
+def calculate_deterministic_confidence(row: dict, image_paths: list, req_df) -> float:
+    # Starts at 1.0
+    conf = 1.0
+    
+    # 1. Image file existence
+    existing_images = [p for p in image_paths if os.path.exists(p)]
+    if len(existing_images) == 0:
+        # If no images exist on disk, we are 100% confident it's NEI (no VLM needed)
+        return 1.0
+    
+    # If some images listed do not exist, we have a discrepancy, deduct confidence
+    if len(existing_images) < len(image_paths):
+        conf -= 0.15
+        
+    # 2. Number of images
+    # VLM routing should prioritize multiple-image claims, so we lower confidence for multiple images
+    if len(existing_images) > 1:
+        conf -= 0.15 * (len(existing_images) - 1)
+        
+    # 3. Object Type & Evidence Requirements
+    claim_object = str(row.get("claim_object", "")).lower()
+    conversation = str(row.get("user_claim", ""))
+    
+    # Base offsets/multipliers
+    if claim_object == "car":
+        conf -= 0.05
+    elif claim_object == "laptop":
+        conf -= 0.05
+    elif claim_object == "package":
+        conf -= 0.10
+        
+    # Specific package contents / item claims require visual inspection, deduct confidence
+    part = extract_object_part(conversation, claim_object)
+    if claim_object == "package" and part in ("contents", "item"):
+        conf -= 0.25
+        
+    # 4. Ambiguity in Claim
+    # Check for generic/ambiguous keywords in claim text
+    text_l = conversation.lower()
+    generic_words = ["damaged", "affected", "looks bad", "problem", "issue", "ruined", "destroyed", "dano", "daño"]
+    if any(gw in text_l for gw in generic_words):
+        conf -= 0.15
+        
+    # Check for uncertainty language
+    if detect_uncertainty(conversation):
+        conf -= 0.20
+        
+    # Check for contradiction signals in text
+    if detect_contradiction(conversation):
+        conf -= 0.15
+        
+    # Check for prompt injection
+    if detect_prompt_injection(conversation):
+        conf -= 0.20
+        
+    # 5. Risk Flags from history
+    risk_flags = extract_risk_flags(row)
+    if "user_history_risk" in risk_flags:
+        conf -= 0.20
+    if "manual_review_required" in risk_flags:
+        conf -= 0.15
+    for flag in risk_flags:
+        if flag not in ("user_history_risk", "manual_review_required"):
+            conf -= 0.10
+            
+    # 6. Uncertain parts/issues
+    issue_type = extract_issue_type(conversation)
+    if issue_type == "unknown" or issue_type == "none":
+        conf -= 0.25
+    if part == "unknown":
+        conf -= 0.25
+
+    # Clamp confidence between 0.0 and 1.0
+    return max(0.0, min(1.0, conf))
+
+
+# ─────────────────────────────────────────────────────────────────────────────
+# Public entry point
+# ─────────────────────────────────────────────────────────────────────────────
+
 def analyze_claim_deterministic(row: dict, image_paths: list, req_df) -> dict:
     conversation = str(row.get("user_claim", ""))
     claim_object = str(row.get("claim_object", "")).lower()
@@ -472,6 +552,17 @@ def analyze_claim_deterministic(row: dict, image_paths: list, req_df) -> dict:
         evidence_met, valid_image,
     )
 
+    # Calculate supporting image ids
+    supporting_ids = build_supporting_image_ids(image_paths, claim_status)
+
+    # Apply Rule 5: even if fallback confidence is high, do not mark a claim supported 
+    # unless supporting_image_ids are valid and evidence requirements are met.
+    if claim_status == "supported":
+        if not evidence_met or not valid_image or not supporting_ids or supporting_ids == "none":
+            claim_status = "not_enough_information"
+            justification = "Evidence standard not met: supporting images are missing or invalid."
+            supporting_ids = "none"
+
     # Finalise risk flags
     if has_history_risk and "manual_review_required" not in risk_flags:
         risk_flags.append("manual_review_required")
@@ -489,7 +580,6 @@ def analyze_claim_deterministic(row: dict, image_paths: list, req_df) -> dict:
     risk_flags_str = ";".join(clean) if clean else "none"
 
     severity       = assign_severity(issue_type, claim_status)
-    supporting_ids = build_supporting_image_ids(image_paths, claim_status)
 
     result = {
         "evidence_standard_met":        evidence_met,

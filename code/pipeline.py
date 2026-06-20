@@ -30,7 +30,14 @@ def validate_and_format_row(row_input, claim_object, raw_vlm_output):
         logger.error("VLM output is not a dict; using fallback row.")
         return validated
 
-    validated["evidence_standard_met"] = bool(raw_vlm_output.get("evidence_standard_met", False))
+    def to_bool(val):
+        if isinstance(val, bool):
+            return val
+        if isinstance(val, str):
+            return val.strip().lower() in ("true", "1", "yes")
+        return bool(val)
+
+    validated["evidence_standard_met"] = to_bool(raw_vlm_output.get("evidence_standard_met", False))
     validated["evidence_standard_met_reason"] = (
         str(raw_vlm_output.get("evidence_standard_met_reason", "unknown")).replace("\n", " ")
     )
@@ -38,7 +45,7 @@ def validate_and_format_row(row_input, claim_object, raw_vlm_output):
         str(raw_vlm_output.get("claim_status_justification", "unknown")).replace("\n", " ")
     )
     validated["supporting_image_ids"] = str(raw_vlm_output.get("supporting_image_ids", "none"))
-    validated["valid_image"] = bool(raw_vlm_output.get("valid_image", False))
+    validated["valid_image"] = to_bool(raw_vlm_output.get("valid_image", False))
 
     issue = str(raw_vlm_output.get("issue_type", "unknown"))
     validated["issue_type"] = issue if issue in ISSUE_TYPE_CHOICES else "unknown"
